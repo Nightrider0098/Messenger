@@ -1,19 +1,17 @@
-const { mongoose } = require('../Connectors/mongoose');
+const { Schema } = require('mongoose');
 
-// const Schema = 
-const messageThreadSchema = new mongoose.Schema({
-  // threadId: String
-  threadId: { type: String, unique: true },
+const messageThreadSchema = new Schema({
+  threadId: { type: Schema.Types.String, unique: true },
   messageArray: [{
-    time: { type: Date, default: Date.now },
-    sender: String,
-    receiver: String,
-    seen: { type: Boolean, default: false },
-    received: { type: Boolean, default: false },
-    deleted: { type: Boolean, default: false },
-    message: String
+    time: { type: Schema.Types.Date, default: Date.now },
+    sender: Schema.Types.String,
+    receiver: Schema.Types.String,
+    seen: { type: Schema.Types.Boolean, default: false },
+    received: { type: Schema.Types.Boolean, default: false },
+    deleted: { type: Schema.Types.Boolean, default: false },
+    message: Schema.Types.String
   }]
 
 })
 
-module.export = { mongoose, messageThreadSchema };
+module.exports = messageThreadSchema;

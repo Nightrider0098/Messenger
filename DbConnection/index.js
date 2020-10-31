@@ -1,30 +1,12 @@
-// const { mongoose, messageThreadSchema } = require("./Schema/messageThreadSchema")
 // Schemas are compiled to Model, A model is a class with which we construct documents.
+const { Schema } = require('mongoose');
 const { mongoose } = require('./Connectors/mongoose');
 
 
-const messageThreadSchema = new mongoose.Schema({
-    // threadId: String
-    threadId: { type: String, unique: true },
-    messageArray: [{
-        time: { type: Date, default: Date.now },
-        sender: String,
-        receiver: String,
-        seen: { type: Boolean, default: false },
-        received: { type: Boolean, default: false },
-        deleted: { type: Boolean, default: false },
-        message: String
-    }]
-
-})
-
-
+const messageThreadSchema = require('./Schema/messageThreadSchema');
 const messageThreadModel = mongoose.model('newTag', messageThreadSchema);
 
-
-
-const sendMessage = (details) => {
-    console.log(details)
+const startNewThread = (details) => new Promise((resolve, reject) => {
     let newMessage = new messageThreadModel({
         threadId: details.threadId,
         messageArray: [
@@ -36,21 +18,135 @@ const sendMessage = (details) => {
             }
         ]
     })
-    console.log(newMessage)
     newMessage.save((err) => {
         if (err) {
             console.log("Error in sending the message!", err)
-            return false
+            reject()
         }
         else {
-
-            return true
+            resolve()
         }
     })
+})
+
+const sendMessage = (details) => new Promise((resolve, reject) => {
+
+    messageThreadModel.updateOne({ threadId: details.threadId }, {
+        $push: {
+            messageArray: {
+                time: details.date || (new Date).toUTCString(),
+                sender: details.sender,
+                receiver: details.receiver,
+                message: details.message
+            }
+        }
+    }).then(resolve).catch(reject)
+
+})
+
+const deleteMessage = (details) => new Promise((resolve, reject) => {
+
+    messageThreadModel.updateOne({ threadId: details.threadId }, {
+        $set: {
+            "messageArray.$[nonDeleted].deleted": true,
+            "messageArray.$[nonDeleted].message": ""
+        },
+    }, {
+        arrayFilters: [{
+            "nonDeleted._id": {
+                $eq: mongoose.Types.ObjectId(details.id)
+            }
+        }]
+    }).then(resolve).catch(reject)
+
+})
+
+const readMessage = (details) => new Promise((resolve, reject) => {
+
+    messageThreadModel.updateOne({ threadId: details.threadId }, {
+        $set: {
+            "messageArray.$[nonDeleted].seen": true
+        },
+    }, {
+        arrayFilters: [{
+            "nonDeleted._id": {
+                $eq: mongoose.Types.ObjectId(details.messageId)
+            }
+        }]
+    }).then(resolve).catch(reject)
+
+})
+
+const receivedMessage = (details) => new Promise((resolve, reject) => {
+
+    messageThreadModel.updateOne({ threadId: details.threadId }, {
+        $set: {
+            "messageArray.$[nonDeleted].received": true
+        },
+    }, {
+        arrayFilters: [{
+            "nonDeleted._id": {
+                $eq: mongoose.Types.ObjectId(details.id)
+            }
+        }]
+    }).then(resolve).catch(reject)
+
+})
+
+const getMessage = (details) => new Promise((resolve, reject) => {
+    messageThreadModel.findOne({ threadId: details.threadId }).then((result) => {
+        resolve(result)
+    }).catch((err) => { reject(err) })
+})
+
+const threadExist = (id) => new Promise((resovle, reject) => {
+
+    messageThreadModel.findOne({ threadId: id }).then((result) => {
+        if (result !== undefined && result !== {})
+            resolve(true)
+        else
+            resolve(false)
+    }).catch(reject)
 }
 
+)
 
 
-module.exports = { sendMessage };
+exports.sendMessage = sendMessage;
+exports.getMessage = getMessage;
+exports.deleteMessage = deleteMessage;
+exports.threadExist = threadExist;
+exports.readMessage = readMessage;
+exports.receivedMessage = receivedMessage;
+exports.startNewThread = startNewThread;
 
 
+const { userSchema } = require('./Schema/userSchema');
+const userModel = mongoose.model('users', userSchema);
+const crypto = require('crypto');
+
+
+const validatePassword = (passPhrase) => new Promise((resolve, reject) => {
+    crypto.pbkdf2(passPhrase, 'salt', 100000, 64, 'sha512', (err, derivedKey) => {
+        if (err) reject(err);
+        // console.log(derivedKey.toString('hex'));
+        // '3745e48...08d59ae'
+        resolve(derivedKey.toString('hex'))
+
+    });
+})
+
+
+const verifyUser = (details) => new Promise((resolve, reject) => {
+    userModel.findOne({}).then((result) => {
+        if (!result) { resolve({ code: 401 }) }
+        
+        validatePassword(details.password).then((processed) => {
+            console.log(processed, result)
+            if (processed === result.password)
+                resolve({ code: 200, id: result._id })
+        }).catch(reject)
+    })
+})
+
+exports.verifyUser = verifyUser;
