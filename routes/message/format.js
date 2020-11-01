@@ -13,9 +13,9 @@ const formatMessage = (details) => {
 // console.log(formatMessage({ seen: true }))
 const formatMessageThread = (threadDetails) => {
     const threadFormatDetails = {}
-    console.log('value here ', threadDetails)
     threadFormatDetails.threadId = threadDetails.threadId;
     threadFormatDetails.messages = threadDetails.messageArray.map(formatMessage)
+    console.log("formatting the message thread!!")
     return threadFormatDetails
 }
 

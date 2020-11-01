@@ -127,10 +127,9 @@ const crypto = require('crypto');
 
 
 const validatePassword = (passPhrase) => new Promise((resolve, reject) => {
+    console.log('hashing password')
     crypto.pbkdf2(passPhrase, 'salt', 100000, 64, 'sha512', (err, derivedKey) => {
         if (err) reject(err);
-        // console.log(derivedKey.toString('hex'));
-        // '3745e48...08d59ae'
         resolve(derivedKey.toString('hex'))
 
     });
@@ -138,15 +137,26 @@ const validatePassword = (passPhrase) => new Promise((resolve, reject) => {
 
 
 const verifyUser = (details) => new Promise((resolve, reject) => {
-    userModel.findOne({}).then((result) => {
-        if (!result) { resolve({ code: 401 }) }
-        
+    console.log('validating the user!!')
+    userModel.findOne({ username: details.username }).then((result) => {
+        if (!result) {
+            console.log("authenticatoin failed as no user found")
+            return resolve({ code: 401 })
+        }
         validatePassword(details.password).then((processed) => {
-            console.log(processed, result)
-            if (processed === result.password)
-                resolve({ code: 200, id: result._id })
+            console.log("verifying user resolved!!")
+            if (processed === result.password) {
+                console.log("Authentication passed")
+                return resolve({ code: 200, id: result._id })
+            }
+            else {
+                console.log("Wrong user name and password!!")
+                resolve({ code: 401 })
+            }
         }).catch(reject)
     })
 })
 
+
 exports.verifyUser = verifyUser;
+exports.userModel = userModel;

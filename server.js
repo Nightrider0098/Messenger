@@ -10,6 +10,9 @@ app.use(bodyparser.urlencoded({ extended: false }))
 app.use(bodyparser.json())
 var session = require("express-session");
 app.use(express.static("public"));
+const { isAuthorized } = require('./helper')
+
+
 // app.set('trust proxy', 1)
 app.use(session({
 	secret: "cats",
@@ -22,13 +25,12 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 
-
-app.post('/login', passport.authenticate('local', {
+app.use('/login', passport.authenticate('local', {
 	successRedirect: '/api/message/',
 	failureRedirect: '/login'
 }));
 
-app.use("/api", router);
+app.use("/api",isAuthorized, router);
 
 app.listen(port, () => {
 	console.log(`listining on port ${port}`);
