@@ -1,0 +1,6 @@
+{
+    "ignore": [
+        "client/*",
+        "*.test.js"
+    ]
+}

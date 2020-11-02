@@ -1,5 +1,5 @@
 const createMessageThread = (data) => {
-    return "HiteshDinesh"
+    return data.sender + data.receiver
 }
 
 const isAuthorized = (req, res, done) => {

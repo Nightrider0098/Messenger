@@ -1,12 +1,13 @@
 // Schemas are compiled to Model, A model is a class with which we construct documents.
-const { Schema } = require('mongoose');
+const { Schema, model } = require('mongoose');
 const { mongoose } = require('./Connectors/mongoose');
 
 
 const messageThreadSchema = require('./Schema/messageThreadSchema');
-const messageThreadModel = mongoose.model('newTag', messageThreadSchema);
+const messageThreadModel = mongoose.model('newtags', messageThreadSchema);
+const updateMessageModel = mongoose.model('updatemessages', messageThreadSchema);
 
-const startNewThread = (details) => new Promise((resolve, reject) => {
+const startNewThread = (details) => new Promise(async (resolve, reject) => {
     let newMessage = new messageThreadModel({
         threadId: details.threadId,
         messageArray: [
@@ -18,20 +19,40 @@ const startNewThread = (details) => new Promise((resolve, reject) => {
             }
         ]
     })
-    newMessage.save((err) => {
+    let updateMessage = new updateMessageModel({
+        threadId: details.threadId,
+        messageArray: [
+            {
+                time: details.date || (new Date).toUTCString(),
+                sender: details.sender,
+                receiver: details.receiver,
+                message: details.message
+            }
+        ]
+    })
+    console.log("saving message to mainMessage Database")
+    await newMessage.save((err) => {
         if (err) {
             console.log("Error in sending the message!", err)
             reject()
         }
-        else {
-            resolve()
-        }
     })
+
+    console.log('saving message to updateMessage Database')
+    await updateMessage.save((err) => {
+        if (err) {
+            console.log("Error in sending the message!", err)
+            reject()
+        }
+
+    })
+
+    resolve()
 })
 
 const sendMessage = (details) => new Promise((resolve, reject) => {
 
-    messageThreadModel.updateOne({ threadId: details.threadId }, {
+    updateMessageModel.updateOne({ threadId: details.threadId }, {
         $push: {
             messageArray: {
                 time: details.date || (new Date).toUTCString(),
@@ -40,7 +61,18 @@ const sendMessage = (details) => new Promise((resolve, reject) => {
                 message: details.message
             }
         }
-    }).then(resolve).catch(reject)
+    }).then(() =>
+
+        messageThreadModel.updateOne({ threadId: details.threadId }, {
+            $push: {
+                messageArray: {
+                    time: details.date || (new Date).toUTCString(),
+                    sender: details.sender,
+                    receiver: details.receiver,
+                    message: details.message
+                }
+            }
+        }).then(resolve)).catch(reject)
 
 })
 
@@ -73,7 +105,11 @@ const readMessage = (details) => new Promise((resolve, reject) => {
                 $eq: mongoose.Types.ObjectId(details.messageId)
             }
         }]
-    }).then(resolve).catch(reject)
+    }).then(() => {
+        updateMessageModel.remove({ threadId: details.threadId }, {
+            justOne: true
+        }).then(resolve)
+    }).catch(reject)
 
 })
 
@@ -94,18 +130,27 @@ const receivedMessage = (details) => new Promise((resolve, reject) => {
 })
 
 const getMessage = (details) => new Promise((resolve, reject) => {
+    console.log("Searching for conversation thread from database")
     messageThreadModel.findOne({ threadId: details.threadId }).then((result) => {
-        resolve(result)
-    }).catch((err) => { reject(err) })
+        console.log("Found result")
+        return resolve(result)
+    }).catch((err) => {
+        console.log("Failed to search into Database/")
+        reject(err)
+    })
 })
 
-const threadExist = (id) => new Promise((resovle, reject) => {
-
+const threadExist = (id) => new Promise((resolve, reject) => {
+    console.log('searching for id in database')
     messageThreadModel.findOne({ threadId: id }).then((result) => {
-        if (result !== undefined && result !== {})
+        if (result !== undefined && result !== {} && result !== null) {
+            console.log("thread exists for the given id!!", result)
             resolve(true)
-        else
+        }
+        else {
+            console.log('thread does not exists for the given id', id)
             resolve(false)
+        }
     }).catch(reject)
 }
 
@@ -160,3 +205,21 @@ const verifyUser = (details) => new Promise((resolve, reject) => {
 
 exports.verifyUser = verifyUser;
 exports.userModel = userModel;
+
+
+
+const findUpdate = (thread) => new Promise((resolve, reject) => {
+    console.log("searching for update!!!")
+    updateMessageModel.findOne({ threadId: thread }).then((result) => {
+        if (result===null || result === undefined || result.messageArray === undefined || (result.messageArray && result.messageArray.length === 0)) {
+            console.log("no Update found for thread ", thread, result)
+            resolve({ update: false })
+        }
+        else {
+            console.log("found updates")
+            resolve({ update: true, message: result })
+        }
+    }).catch(reject)
+})
+
+exports.findUpdate = findUpdate;

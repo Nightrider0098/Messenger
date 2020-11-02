@@ -15,7 +15,7 @@ const { isAuthorized } = require('./helper')
 
 // app.set('trust proxy', 1)
 app.use(session({
-	secret: "cats",
+	secret: "ThisIsTopSeceretSoYouShallNotTellAnyOne",
 	resave: true,
 	saveUninitialized: true
 	// cookie: { secure: true }
@@ -23,14 +23,22 @@ app.use(session({
 ));
 app.use(passport.initialize());
 app.use(passport.session());
-
+var cors = require('cors')
+app.use(cors())
 
 app.use('/login', passport.authenticate('local', {
 	successRedirect: '/api/message/',
 	failureRedirect: '/login'
 }));
 
-app.use("/api",isAuthorized, router);
+app.use("/api", router);
+
+
+if (process.env.NODE_ENV !== 'production') {
+	app.use('/', (req, res) => {
+
+	})
+}
 
 app.listen(port, () => {
 	console.log(`listining on port ${port}`);
