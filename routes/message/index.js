@@ -1,14 +1,12 @@
 const router = require('express').Router()
-const { sendMessage, getMessage, deleteMessage, threadExist, startNewThread, readMessage, receivedMessage, findUpdate } = require('../../DbConnection')
+const { sendMessage, getMessage, deleteMessage, threadExist, startNewThread, readMessage, receivedMessage, findUpdate, newUser } = require('../../DbConnection')
 const { createMessageThread } = require('../../helper')
-const { formatMessage, formatMessageThread } = require('./format')
+const { formatMessageThread } = require('./format')
 
 router.post('/message', (req, res) => {
     console.log('encountered send message request')
     var messageDetails = {}
-    messageDetails['threadId'] = createMessageThread({ sender: req.body.sender, receiver: req.body.receiver })
-    messageDetails['sender'] = req.body.sender;
-    messageDetails['receiver'] = req.body.receiver;
+    messageDetails['threadId'] = req.body.threadId
     messageDetails['message'] = req.body.message;
     console.log('searching for existance of thread')
     threadExist(messageDetails['threadId']).then((condi) => {
@@ -38,18 +36,24 @@ router.post('/message', (req, res) => {
 
 router.get('/', (req, res) => {
     var messageDetails = {}
-    messageDetails['threadId'] = createMessageThread({ sender: req.query.sender, receiver: req.query.receiver })
-    getMessage(messageDetails).then((result) => {
-        res.json(formatMessageThread(result))
-    }, () => { res.sendStatus(404) })
+    messageDetails['threadId'] = req.query.threadId
+    if (req.query.threadId === undefined || req.query.threadId === "") {
+        console.log("threadId is not given")
+        res.sendStatus(400)
+    } else
+        getMessage(messageDetails).then((result) => {
+            console.log('sending the Conversation')
+            res.json(formatMessageThread(result))
+        }, () => { res.sendStatus(500) })
 })
 
 router.get('/update', (req, res) => {
-    console.log("find update request encountered!!")
-    findUpdate(req.query.id).then((result) => {
+    console.log("find update request encountered!! threadId", req.query)
+    findUpdate(req.query.threadId).then((result) => {
         console.log("sending the update status")
         return res.json(result)
     })
+
 })
 
 router.delete('/message', (req, res) => {
@@ -67,16 +71,29 @@ router.delete('/message', (req, res) => {
 
 router.patch('/message', async (req, res) => {
     var messageDetails = {}
-    messageDetails['threadId'] = createMessageThread({ sender: req.body.sender, receiver: req.body.receiver })
-    messageDetails['read'] = req.body.read;
+    messageDetails['threadId'] = req.body.threadId
     messageDetails['seen'] = req.body.seen;
+    messageDetails['received'] = req.body.read;
 
-    if (req.body.read !== undefined) {
-        await readMessage(req.messageId)
-    }
     if (req.body.seen !== undefined) {
+        console.log("received a seen message request")
+        await readMessage(req.body.threadId)
+    }
+    if (req.body.received !== undefined) {
         await receivedMessage(req.body.messageId)
     }
 })
 
+router.get('/new', async (req, res) => {
+    console.log("request for new id")
+    newUser({
+        username: "Lakshmi",
+        password: "New"
+    }).then(user => {
+        res.json({ userId: user })
+    }).catch(() => {
+        console.log('failed to create a id')
+        res.sendStatus(500)
+    })
+})
 exports.messageRouter = router;
