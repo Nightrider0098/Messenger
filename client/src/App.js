@@ -1,136 +1,195 @@
-import './App.css'
-const { useEffect, useState } = require('react')
-// requiredPaths;
-// import React from 'react'
+import React, { useEffect, useState } from 'react'
+import { NavLink } from 'react-router-dom'
+import NewApp from './components/LoginPage'
+import MainScreen from './components/Messenger'
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route,
+  Link,
+  Redirect,
+  useHistory,
+  useLocation
+} from "react-router-dom";
 
-function App() {
-  const [messages, UpdateMessages] = useState([{ message: "here will be your message" }])
-  const [foundmessage, updateFound] = useState(false)
-  useEffect(() => {
-    // invoked every time when componentDidUpdate and componentDidMount
-    if (!foundmessage) {
-      updateFound(true);
-      fetch(`/api/message?threadId=${document.getElementById('threadId').value}`)
-        .then((res) => res.json())
-        .then((res) => {
-          console.log("fetching the messages for the first time")
-          UpdateMessages(res)
-        })
-        .catch((err) => { console.log(err) })
-      // setInterval(() => {
-      //   console.log('searched for update')
-      //   fetch(`/api/message/update?threadId=Hitesh${document.getElementById('receiver').value || 'Dinesh'}`)
-      //     .then((res) => res.json())
-      //     .then((res) => {
-      //       console.log("updated the message")
-      //       UpdateMessages(res)
-      //     })
-      //     .catch((err) => { console.log(err) })
-      // }, 1000);
+
+import a from "./components/use-auth.js";
+const [useAuth, authContext] = a
+// console.log(useAuth(), authContext)
+export default function App() {
+
+  const [navOpen, setNavOpen] = useState(false)
+  const opennav = () => {
+    // console.log("slic")
+    let tempNav = navOpen;
+    setNavOpen(!navOpen)
+    // navOpen = !navOpen;
+    if (tempNav) {
+      document.getElementById('nav-toggler').style.left = '179px';
+      document.getElementById('nav-icon').style.transform = 'rotate(0deg)';
+    }
+    else {
+      document.getElementById('nav-toggler').style.left = '-500px';
+      document.getElementById('nav-icon').style.transform = 'rotate(-180deg)';
     }
 
-  })
-
-  async function postData(url, data) {
-    // Default options are marked with *
-
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-        // there is alway some issue here
-        //   'Content-Type': 'x-www-form-urlencoded',
-      },
-      body: JSON.stringify(data)
-    })
-    return response
+  }
+  const toggleOptionButton = () => {
+    if (navOpen) {
+      return <i onClick={opennav} className="fas fa-plus fa-3x "></i>
+    } else {
+      return <i onClick={opennav} className="fas fa-users-cog fa-3x"></i>
+    }
   }
 
-  const getUpdate = () => {
-    console.log('searched for update')
-    fetch(`/api/message/update?threadId=${document.getElementById('threadId').value}`)
-      .then((res) => res.json())
-      .then((res) => {
-        console.log("updated the message")
-        UpdateMessages(res)
-      })
-      .catch((err) => { console.log(err) })
-  }
-
-  const sendMessage = () => {
-    postData('/api/message/message', { threadId: document.getElementById('threadId').value, message: document.getElementById('inputMessage').value }).then(e => {
-      console.log("message sent ok")
-    }).catch((e) => {
-      alert(e)
-    })
-  }
-
-
-  const getAllMessage = () => {
-    fetch(`/api/message?threadId=${document.getElementById('threadId').value}`)
-      .then((res) => res.json())
-      .then((res) => {
-        console.log("fetched complete message Thread")
-        UpdateMessages(res)
-      })
-      .catch((err) => {
-        alert('Error while fetching the complete thread')
-        console.log(err)
-      })
-  }
-
-  async function patchRequest(url, data) {
-    // Default options are marked with *
-
-    const response = await fetch(url, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json'
-        // there is alway some issue here
-        //   'Content-Type': 'x-www-form-urlencoded',
-      },
-      body: JSON.stringify(data)
-    })
-    return response.json();
-  }
-  const seenMessage = () => {
-    patchRequest("/api/message/message", { seen: true, threadId: document.getElementById('threadId').value, messageId: '5f9f9db47e926c2f8488e515' }).then(() => {
-      getAllMessage()
-    })
-  }
-
-  const createNewThread = () => {
-    fetch('/api/message/new').then((res) => {
-      console.log('new id created')
-      alert("new id created")
-      console.log(res)
-    }).catch(() => {
-      console.log("failed to send request")
-    })
-  }
   return (
+    <ProvideAuth>
+      <Router>
 
-    <div id="background-warpper"  >
-      <div id="messenger-head" className="row p-5" >
-        <div className="col-lg-8 ">
-          <div id="message-holder">
-            {JSON.stringify(messages)}
+
+        <div className="whole-panel">
+          <div className="navigation-bar-wrapper">
+            <div className="corner-button" >
+              <div id="nav-icon" >{toggleOptionButton()}
+              </div>
+            </div>
+            <div className="navigation-bar " id="nav-toggler">
+              <ul>
+                <li className="nav-link">
+                  <NavLink
+
+                    to="/home"
+                    activeStyle={{
+                      backgroungColor: 'rgb(237, 136, 89)', color: 'white', borderRadius: '10px', padding: '8px'
+                    }}>Home</NavLink></li>
+
+
+                <li className="nav-link">
+                  <NavLink
+                    className="nav-link"
+                    to="/login"
+                    activeStyle={{
+                      backgroungColor: 'rgb(237, 136, 89)', color: 'white', borderRadius: '10px', padding: '8px 8px 8px 25px'
+                    }}>Login</NavLink></li>
+
+
+                <li className="nav-link">
+                  <NavLink
+                    className="nav-link"
+                    to="/home"
+                    activeStyle={{
+                      backgroungColor: 'rgb(237, 136, 89)', color: 'white', borderRadius: '10px', padding: '8px 8px 8px 27px'
+                    }}>Find Friends</NavLink></li>
+                <li><AuthButton /></li>
+              </ul>
+            </div>
           </div>
-
+          <div className="content ">
+            <Switch>
+              <Route path="/login">
+                <NewApp />
+              </Route>
+              <PrivateRoute path="/home">
+                <MainScreen />
+              </PrivateRoute>
+            </Switch>
+          </div>
         </div>
-        <div className="col-lg-4">
-          <input placeholder="threadId" className="input-field" id="threadId" />
-          <input placeholder="Send Message..."  className="input-field" id="inputMessage" />
-          <button onClick={sendMessage}  className="btn btn-dark">Send</button>
-          <button onClick={getUpdate}  className="btn btn-dark" >Get Update</button>
-          <button onClick={getAllMessage}  className="btn btn-dark" > Get All</button>
-          <button onClick={seenMessage}  className="btn btn-dark" >Seen</button>
-          <button onClick={createNewThread}  className="btn btn-dark" >New thread</button>
-        </div>
-      </div >
-    </div >
 
+      </Router>
+    </ProvideAuth >
+
+  )
+}
+
+
+
+const fakeAuth = {
+  isAuthenticated: false,
+  signin(cb) {
+    fakeAuth.isAuthenticated = true;
+    setTimeout(cb, 100); // fake async
+  },
+  signout(cb) {
+    fakeAuth.isAuthenticated = false;
+    setTimeout(cb, 100);
+  }
+};
+
+// this will be used globally
+
+
+function ProvideAuth({ children }) {
+  const auth = useProvideAuth();
+  return (
+    <authContext.Provider value={auth}>
+      {children}
+    </authContext.Provider>
   );
 }
 
-export default App;
+
+function useProvideAuth() {
+  const [user, setUser] = useState(null);
+
+  const signin = cb => {
+    return fakeAuth.signin(() => {
+      setUser("user");
+      cb();
+    });
+  };
+
+  const signout = cb => {
+    return fakeAuth.signout(() => {
+      setUser(null);
+      cb();
+    });
+  };
+
+  return {
+    user,
+    signin,
+    signout
+  };
+}
+
+
+
+function AuthButton() {
+  let history = useHistory();
+  let auth = useAuth();
+
+  return auth.user ? (
+    <p>
+      <a onClick={() => { auth.signout(() => history.push("/")); }} className="bg-orange btn btn-info " style={{ width: '100px' }}>
+        <i class="fa fa-sign-out" aria-hidden="true"></i> Log out
+        </a>
+    </p >
+  ) : (
+      <p>You are not logged in.</p>
+    );
+}
+
+function PrivateRoute({ children, ...rest }) {
+  let auth = useAuth();
+  return (
+    <Route
+      {...rest}
+      render={({ location }) =>
+        auth.user ? (
+          children
+        ) : (
+            <Redirect
+              to={{
+                pathname: "/login",
+                state: { from: location }
+              }}
+            />
+          )
+      }
+    />
+  );
+}
+
+
+

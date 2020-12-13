@@ -232,7 +232,6 @@ exports.verifyUser = verifyUser;
 exports.userModel = userModel;
 
 
-
 const findUpdate = (threadId) => new Promise((resolve, reject) => {
     console.log("searching for update!!!")
     updateMessageModel.findOne({ threadId: threadId }).then((result) => {
@@ -254,7 +253,6 @@ const findUpdate = (threadId) => new Promise((resolve, reject) => {
         }
     }).catch(reject)
 })
-
 exports.findUpdate = findUpdate;
 
 
@@ -270,7 +268,6 @@ const newUSerId = async () => {
         }
     }).catch((e) => console.log('failed to create new id', e))
 }
-
 const newUser = (details) => new Promise((resolve, reject) => {
     console.log("createing new id")
     convertPassword(details.password).then((encPass) => {

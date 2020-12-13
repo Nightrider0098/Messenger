@@ -1,0 +1,26 @@
+.contact-list-wrapper h4 {
+    text-align: center;
+}
+
+.contact-list-wrapper {
+    max-width: 250px;
+    background-color: #ee9617;
+    padding: 20px 5px 20px 5px;
+    background-image: linear-gradient(315deg, #ee9617 0%, #fe5858 74%);
+    border-radius: 15px;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: inline-block;
+}
+
+.messenger-wrapper {
+    vertical-align: middle;
+    display: flex;
+}
+
+.message-tray-wrapper {
+    /* max-width: 75%; */
+    width: 75%;
+    display: inline-block;
+}

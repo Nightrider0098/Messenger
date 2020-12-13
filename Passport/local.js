@@ -1,20 +1,21 @@
 // const User = require('../DbConnection')
-const { userModel, verifyUser } = require('../DbConnection')
+// const { userModel } = require('../DbConnection');
+const { AuthenticateUser, UserSingleModel } = require('../DbConnection/version2')
 
 var passport = require('passport')
     , LocalStrategy = require('passport-local').Strategy;
 
 passport.use(new LocalStrategy(
     function (username, password, done) {
-        verifyUser({ username: username, password: password }).then((result) => {
+        AuthenticateUser(username, password).then((result) => {
             if (result.code === 401) {
                 console.log('Sending Error for Wrong Credentials')
                 return done(new Error('Wrong Username or password!!'));
             }
             else if (result.code === 200) {
                 // this will invoke serializer
-                console.log('Passing the id of user')
-                let user = { id: result.id }
+                // console.log('Passing the id of user', result)
+                let user = { id: result.userId }
                 return done(null, user);
             }
             else {
@@ -26,18 +27,18 @@ passport.use(new LocalStrategy(
 ));
 
 passport.serializeUser(function (user, done) {
-    console.log('serializing the user for sessions')
+    // console.log('serializing the user for sessions')
     // this will invoke deserilixer
+   
     done(null, user.id);
 
 });
 
 passport.deserializeUser(function (id, done) {
-    console.log("deserializing the user to add req.user")
-    userModel.findById(id, function (err, user) {
-        console.log('looking at user details using find id===>', user)
+    // console.log("deserializing the user to add req.user")
+    UserSingleModel.findOne({ userId: id }, function (err, user) {
         if (err) { console.log("encountered error while finding the user through userModel") }
-        done(err, user);
+        done(err, { ...user, id: user.userId });
     });
 });
 

@@ -1,0 +1,48 @@
+.profile-icon {
+    border-radius: 15px;
+    display: inline-block;
+}
+
+.contact-tiles {
+    border: 1px black ridge;
+    background-color: white;
+    border-radius: 5px;
+    margin: 5px;
+    box-shadow: 1px 1px 4px #888;
+    height: 50px;
+    padding: 0 0 0 10px;
+    display: flex;
+    align-items: center;
+}
+
+.contact-name-holder {
+    width: 80%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.message-count-circle {
+    background-color: rgb(214, 75, 75);
+    height: 20px;
+    width: 20px;
+    border-radius: 10px;
+    /* text-align: center; */
+    color: white;
+    display: flex;
+    vertical-align: middle;
+    justify-content: center;
+    font-weight: 500;
+    line-height: 1.5;
+    font-size: 0.8em;
+}
+
+.contact-tile-text {
+    width: 70%;
+    /* min-width: 15px; */
+    display: inline-block;
+    font-size: 10px;
+    padding: 0 7px 0 15px;
+}

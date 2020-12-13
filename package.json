@@ -4,7 +4,9 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "start": "nodemon server.js",
+    "backend":"nodemon server.js",
+    "frontend":"cd client && npm start",
+    "start": "run-p backend  frontend",
     "test": "jest"
   },
   "author": "Hitesh",
